@@ -1,6 +1,6 @@
 # CONTEXT.md
 
-> Última actualización: abril 2026
+> Última actualización: 2026-04-26
 > Este documento refleja el estado actual del proyecto — actualizar cuando algo cambie.
 
 ## Qué es AGENCIAS
@@ -180,12 +180,17 @@ Las observaciones se documentan en session-notes/ — un archivo por sesión.
 - Preguntas futuras y réplicas a comentarios
 
 ## Trabajo pendiente
+- [x] Crear estructura base del proyecto — hecho 2026-04-26
+- [x] Conectar repo local a GitHub (racsodia626-wq/agencias-sistema) — hecho 2026-04-26
+- [ ] Conectar repo a Vercel y confirmar URL
+- [ ] Crear archivo .env con credenciales TURN (Metered.ca)
+- [ ] Construir public/app/index.html — pantalla de inicio con botones CÁMARA y CONTROLADOR
+- [ ] Construir public/app/core/camera.html — dispositivo del performer
+- [ ] Construir public/app/levels/nivel-01.html — tutorial + primer nivel
 - [ ] Audio en mobile — AudioContext debe crearse dentro del gesto del usuario
 - [ ] Detección corporal — TensorFlow MoveNet tiene conflicto de backend webgpu
 - [ ] Pantalla intermedia tutorial → Nivel 01 — contenido por definir
 - [ ] Obstáculos — pendiente hasta resolver ángulo de cámara
-- [ ] Conectar repo a Vercel y confirmar URL
-- [ ] Crear archivo .env con credenciales TURN
 - [ ] Definir símbolos universales para comandos
 - [ ] Implementar cámara en primera persona
 
