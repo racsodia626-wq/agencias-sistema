@@ -1,6 +1,6 @@
 # CONTEXT.md
 
-> Última actualización: 2026-04-26
+> Última actualización: 2026-04-29
 > Este documento refleja el estado actual del proyecto — actualizar cuando algo cambie.
 
 ## Qué es AGENCIAS
