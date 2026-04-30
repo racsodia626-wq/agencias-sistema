@@ -182,17 +182,22 @@ Las observaciones se documentan en session-notes/ — un archivo por sesión.
 ## Trabajo pendiente
 - [x] Crear estructura base del proyecto — hecho 2026-04-26
 - [x] Conectar repo local a GitHub (racsodia626-wq/agencias-sistema) — hecho 2026-04-26
-- [ ] Conectar repo a Vercel y confirmar URL
-- [ ] Crear archivo .env con credenciales TURN (Metered.ca)
-- [ ] Construir public/app/index.html — pantalla de inicio con botones CÁMARA y CONTROLADOR
-- [ ] Construir public/app/core/camera.html — dispositivo del performer
+- [x] Conectar repo a Vercel — URL confirmada: https://agencias-sistema.vercel.app — hecho 2026-04-29
+- [x] Crear archivo .env con credenciales reales de Metered.ca — hecho 2026-04-29
+- [x] Actualizar .env.example con URLs nuevas (global.relay.metered.ca) — hecho 2026-04-29
+- [x] Construir public/app/index.html — pantalla de inicio con botones CÁMARA y CONTROLADOR — probado en celular y laptop — hecho 2026-04-29
+- [ ] Construir public/app/core/camera.html — dispositivo del performer — próximo paso
 - [ ] Construir public/app/levels/nivel-01.html — tutorial + primer nivel
 - [ ] Audio en mobile — AudioContext debe crearse dentro del gesto del usuario
-- [ ] Detección corporal — TensorFlow MoveNet tiene conflicto de backend webgpu
+- [ ] Detección de manos (palmas y dorso) — sustituye detección de cuerpo completo — decisión tomada 2026-04-29
 - [ ] Pantalla intermedia tutorial → Nivel 01 — contenido por definir
 - [ ] Obstáculos — pendiente hasta resolver ángulo de cámara
 - [ ] Definir símbolos universales para comandos
-- [ ] Implementar cámara en primera persona
+
+## Decisiones tomadas — 2026-04-29
+- Cámara en primera persona con head mount — reemplaza celular como cámara del performer
+- Detección de manos (palmas y dorso) sustituye detección de cuerpo completo — TensorFlow MoveNet descartado
+- Activación con botón ciego — controlador ve la interfaz, performer toca sin ver, voz como puente entre ambos
 
 ## Metas por semana
 Semana 2: conexión funcional + audio funcionando + performer detectado — listo para probar con otra persona
