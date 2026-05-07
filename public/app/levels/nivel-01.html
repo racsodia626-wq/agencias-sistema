@@ -320,6 +320,7 @@
 
     // ─── Estado ───────────────────────────────────────────────────────────────
     let peer        = null;
+    let myPeerId    = null; // ID propio del controlador — se envía al performer para que nos llame
     let activeCall  = null;
     let connection  = null; // data channel — para comandos futuros
     let micStream   = null; // solo micrófono — el controlador nunca usa cámara
@@ -409,55 +410,49 @@
 
       console.log('[CONTROLADOR] Peer creado — esperando open');
 
-      peer.on('open', async (id) => {
+      peer.on('open', (id) => {
+        myPeerId = id;
         console.log('[CONTROLADOR] Peer open — ID asignado:', id);
-        console.log('[CONTROLADOR] Intentando llamar a performer:', performerId);
-        console.log('[CONTROLADOR] micStream activo:', micStream ? micStream.getTracks().map(t => t.kind + ':' + t.readyState) : 'null');
-        try {
-          // Llama al performer enviando el stream del micrófono del controlador
-          activeCall = peer.call(performerId, micStream);
 
-          console.log('[CONTROLADOR] call() enviado — esperando stream del performer');
+        // Abre data channel — al abrirse enviamos nuestro ID al performer
+        connection = peer.connect(performerId);
 
-          activeCall.on('stream', (remoteStream) => {
-            console.log('[CONTROLADOR] Stream recibido del performer');
-            console.log('[CONTROLADOR] Tracks en remoteStream:', remoteStream.getTracks().map(t => t.kind + ':' + t.readyState));
-            // Recibe el stream del performer: video (cámara) + audio (micrófono del performer)
-            document.getElementById('video-performer').srcObject = remoteStream;
-            document.getElementById('audio-performer').srcObject = remoteStream;
+        connection.on('open', () => {
+          console.log('[CONTROLADOR] Data channel abierto — enviando peer ID al performer');
+          // El performer necesita nuestro ID para iniciarnos la llamada con video+audio
+          connection.send({ type: 'peer-id', id: myPeerId });
+        });
 
-            isConnected = true;
-            updateStatusDot('naranja');
-          });
+        connection.on('error', (err) => {
+          console.warn('[CONTROLADOR] Error en data channel:', err);
+        });
+      });
 
-          activeCall.on('error', (err) => {
-            console.error('[CONTROLADOR] Error en activeCall:', err);
-            showError('Error en la llamada. Verifica el código e intenta de nuevo.');
-          });
+      // Recibe la llamada del performer — él inicia el call con video+audio completo
+      peer.on('call', (call) => {
+        console.log('[CONTROLADOR] Llamada recibida del performer');
+        activeCall = call;
+        // Responde solo con el micrófono — el controlador nunca envía video
+        call.answer(micStream);
 
-          activeCall.on('close', () => {
-            console.log('[CONTROLADOR] Call cerrado');
-            if (isConnected) {
-              showError('La conexión con el performer se cortó.');
-            }
-          });
+        call.on('stream', (remoteStream) => {
+          console.log('[CONTROLADOR] Stream recibido del performer');
+          console.log('[CONTROLADOR] Tracks en remoteStream:', remoteStream.getTracks().map(t => t.kind + ':' + t.readyState));
+          document.getElementById('video-performer').srcObject = remoteStream;
+          document.getElementById('audio-performer').srcObject = remoteStream;
+          isConnected = true;
+          updateStatusDot('naranja');
+        });
 
-          // Abre data channel para comandos futuros
-          connection = peer.connect(performerId);
+        call.on('error', (err) => {
+          console.error('[CONTROLADOR] Error en call:', err);
+          showError('Error en la llamada. Verifica el código e intenta de nuevo.');
+        });
 
-          connection.on('open', () => {
-            console.log('[CONTROLADOR] Data channel abierto');
-          });
-
-          connection.on('error', (err) => {
-            // No bloquea la sesión — el audio/video puede funcionar sin el data channel
-            console.warn('[CONTROLADOR] Error en data channel:', err);
-          });
-
-        } catch (err) {
-          console.error('[CONTROLADOR] Error al intentar conectar:', err);
-          showError('No se pudo conectar. Verifica el código e intenta de nuevo.');
-        }
+        call.on('close', () => {
+          console.log('[CONTROLADOR] Call cerrado');
+          if (isConnected) showError('La conexión con el performer se cortó.');
+        });
       });
 
       // Si el peer del performer no existe, PeerJS lanza error tipo 'peer-unavailable'
