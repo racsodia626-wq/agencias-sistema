@@ -221,6 +221,22 @@
     #audio-controller {
       display: none;
     }
+
+    /* Diagnóstico visual temporal — mostrar tracks de localStream en pantalla */
+    #debug-tracks {
+      position: fixed;
+      bottom: 16px;
+      left: 16px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--color-primary);
+      background: rgba(5, 8, 16, 0.8);
+      padding: 6px 10px;
+      letter-spacing: 1px;
+      line-height: 1.6;
+      z-index: 30;
+      pointer-events: none;
+    }
   </style>
 </head>
 <body>
@@ -259,6 +275,9 @@
 
   <!-- Error visible en pantalla -->
   <div id="error-msg"></div>
+
+  <!-- Diagnóstico visual temporal — tracks de localStream -->
+  <div id="debug-tracks"></div>
 
   <!-- PeerJS -->
   <script src="https://unpkg.com/peerjs@1.5.1/dist/peerjs.min.js"></script>
@@ -360,6 +379,12 @@
       peer.on('open', (id) => {
         console.log('[PERFORMER] Peer open — registrado como:', id);
         console.log('[PERFORMER] localStream activo:', localStream ? localStream.getTracks().map(t => t.kind + ':' + t.readyState) : 'null');
+
+        // Diagnóstico visual — mostrar tracks en pantalla del celular
+        const tracks = localStream
+          ? localStream.getTracks().map(t => t.kind + ':' + t.readyState).join('\n')
+          : 'null';
+        document.getElementById('debug-tracks').textContent = 'TRACKS:\n' + tracks;
       });
 
       // El controlador llama al performer con call (stream de audio)
