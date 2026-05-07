@@ -70,6 +70,21 @@
 
 ---
 
+## 2026-05-06 — Credenciales TURN hardcodeadas temporalmente
+
+**Decisión:** Las credenciales de Metered.ca (TURN_USERNAME, TURN_CREDENTIAL) y la configuración PEER_CONFIG están hardcodeadas directamente en camera.html y nivel-01.html.
+
+**Alternativas consideradas:**
+- config.js separado gitignoreado (implementado inicialmente — no funciona en Vercel porque el archivo nunca llega al repo)
+- Vercel Edge Function que sirve las credenciales como JSON en runtime
+- Build step que genera config.js desde variables de entorno de Vercel antes del deploy
+
+**Razón:** Solución temporal para desbloquear pruebas de conexión WebRTC. El repo es público — las credenciales quedan expuestas, pero el plan gratuito de Metered.ca tiene límite mensual bajo, riesgo acotado para fase de desarrollo.
+
+**Pendiente:** Migrar a Vercel Edge Function antes de presentaciones públicas.
+
+---
+
 ## Plantilla para nuevas decisiones
 
 ## YYYY-MM-DD — Título corto

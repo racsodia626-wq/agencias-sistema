@@ -292,8 +292,27 @@
 
   <!-- PeerJS -->
   <script src="https://unpkg.com/peerjs@1.5.1/dist/peerjs.min.js"></script>
-  <!-- Credenciales TURN y config de PeerJS — mismo archivo que usa camera.html -->
-  <script src="../core/config.js"></script>
+  <!-- Credenciales hardcodeadas temporalmente — migrar a Edge Function antes de presentaciones públicas -->
+  <script>
+    const TURN_USERNAME = '53a9857b1f8305801b737ca3';
+    const TURN_CREDENTIAL = 'UT9byJl/o7k4t9k6';
+
+    const ICE_SERVERS = [
+      { urls: 'stun:stun.relay.metered.ca:80' },
+      { urls: 'turn:global.relay.metered.ca:80',   username: TURN_USERNAME, credential: TURN_CREDENTIAL },
+      { urls: 'turn:global.relay.metered.ca:80?transport=tcp', username: TURN_USERNAME, credential: TURN_CREDENTIAL },
+      { urls: 'turn:global.relay.metered.ca:443',  username: TURN_USERNAME, credential: TURN_CREDENTIAL },
+      { urls: 'turns:global.relay.metered.ca:443?transport=tcp', username: TURN_USERNAME, credential: TURN_CREDENTIAL }
+    ];
+
+    const PEER_CONFIG = {
+      host: '0.peerjs.com',
+      port: 443,
+      path: '/',
+      secure: true,
+      config: { iceServers: ICE_SERVERS }
+    };
+  </script>
 
   <script>
     // ─── Constantes ───────────────────────────────────────────────────────────
