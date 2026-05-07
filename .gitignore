@@ -2,6 +2,9 @@
 .env
 .env.local
 
+# Config con credenciales reales — usar config.example.js como referencia
+public/app/core/config.js
+
 # Archivos del sistema
 .DS_Store
 Thumbs.db

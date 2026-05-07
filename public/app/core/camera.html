@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>AGENCIAS — Cámara</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --color-bg: #050810;
+      --color-primary: #00D4FF;
+      --color-success: #00FF88;
+      --color-warning: #FFB800;
+      --color-danger: #FF3366;
+      --font-mono: 'Share Tech Mono', monospace;
+      --font-display: 'Rajdhani', sans-serif;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: var(--color-bg);
+    }
+
+    /* Video ocupa toda la pantalla */
+    #video-performer {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      /* Evita scroll accidental al tocar el video en móvil */
+      touch-action: none;
+    }
+
+    /* Overlay encima del video */
+    #overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    /* Barra superior con código de sala y status */
+    #header-bar {
+      position: absolute;
+      top: 20px;
+      left: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      pointer-events: all;
+    }
+
+    /* Código de sala — toque para copiar */
+    #room-code-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(5, 8, 16, 0.75);
+      border: 1px solid rgba(0, 212, 255, 0.4);
+      padding: 8px 12px;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      /* Activo al tocar */
+      transition: background 0.15s ease;
+    }
+
+    #room-code-container:active {
+      background: rgba(0, 212, 255, 0.15);
+    }
+
+    #room-code {
+      font-family: var(--font-mono);
+      font-size: 18px;
+      color: var(--color-primary);
+      letter-spacing: 4px;
+    }
+
+    /* Ícono de copiar */
+    #copy-icon {
+      width: 14px;
+      height: 14px;
+      opacity: 0.5;
+    }
+
+    /* Feedback al copiar */
+    #copy-feedback {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--color-success);
+      letter-spacing: 2px;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      white-space: nowrap;
+    }
+
+    #copy-feedback.visible {
+      opacity: 1;
+    }
+
+    /* Punto de status de conexión */
+    #status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--color-danger);
+      box-shadow: 0 0 6px var(--color-danger);
+      flex-shrink: 0;
+      /* Pulso cuando está en rojo — sin controlador */
+      animation: pulse-red 2s infinite;
+    }
+
+    #status-dot.naranja {
+      background: var(--color-warning);
+      box-shadow: 0 0 6px var(--color-warning);
+      animation: pulse-orange 2s infinite;
+    }
+
+    #status-dot.verde {
+      background: var(--color-success);
+      box-shadow: 0 0 6px var(--color-success);
+      animation: none;
+    }
+
+    @keyframes pulse-red {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.3; }
+    }
+
+    @keyframes pulse-orange {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.5; }
+    }
+
+    /* Pantalla de permiso de cámara — visible antes de que inicie el video */
+    #screen-permission {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: var(--color-bg);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 32px;
+      padding: 32px 24px;
+      z-index: 10;
+    }
+
+    #screen-permission.oculto {
+      display: none;
+    }
+
+    .permission-title {
+      font-family: var(--font-display);
+      font-size: 28px;
+      font-weight: 600;
+      letter-spacing: 6px;
+      color: var(--color-primary);
+      text-transform: uppercase;
+    }
+
+    .permission-hint {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: rgba(0, 212, 255, 0.5);
+      letter-spacing: 2px;
+      text-align: center;
+      line-height: 1.8;
+    }
+
+    #btn-iniciar {
+      background: transparent;
+      border: 1px solid var(--color-primary);
+      color: var(--color-primary);
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: 6px;
+      padding: 18px 40px;
+      text-transform: uppercase;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+
+    #btn-iniciar:active {
+      background: var(--color-primary);
+      color: var(--color-bg);
+    }
+
+    /* Mensaje de error si algo falla */
+    #error-msg {
+      position: fixed;
+      bottom: 24px;
+      left: 16px;
+      right: 16px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--color-danger);
+      letter-spacing: 1px;
+      text-align: center;
+      display: none;
+      z-index: 20;
+    }
+
+    /* Elemento de audio para reproducir lo que envía el controlador */
+    #audio-controller {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Pantalla de permiso: el usuario debe tocar para iniciar cámara y audio -->
+  <div id="screen-permission">
+    <h1 class="permission-title">AGENCIAS</h1>
+    <p class="permission-hint">
+      Toca para activar<br>cámara y audio
+    </p>
+    <button id="btn-iniciar">INICIAR</button>
+  </div>
+
+  <!-- Video en vivo de la cámara del performer -->
+  <video id="video-performer" autoplay playsinline muted></video>
+
+  <!-- Overlay: código de sala + punto de status -->
+  <div id="overlay">
+    <div id="header-bar">
+      <div id="status-dot"></div>
+      <div id="room-code-container" role="button" aria-label="Copiar código de sala">
+        <span id="room-code">· · · · ·</span>
+        <!-- Ícono de copiar como SVG inline -->
+        <svg id="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-primary);">
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+        </svg>
+      </div>
+      <span id="copy-feedback">COPIADO</span>
+    </div>
+  </div>
+
+  <!-- Audio del controlador — se activa cuando llega el stream remoto -->
+  <audio id="audio-controller" autoplay playsinline></audio>
+
+  <!-- Error visible en pantalla -->
+  <div id="error-msg"></div>
+
+  <!-- PeerJS -->
+  <script src="https://unpkg.com/peerjs@1.5.1/dist/peerjs.min.js"></script>
+  <!-- Credenciales TURN y config de PeerJS -->
+  <script src="config.js"></script>
+
+  <script>
+    // ─── Constantes ───────────────────────────────────────────────────────────
+    const PEER_ID_PREFIX = 'agencias-cam-';
+    const LETTERS = 'ABCDEFGHJKLMNPQRSTUVWXYZ'; // sin I ni O para evitar confusión
+
+    // ─── Estado ───────────────────────────────────────────────────────────────
+    let roomCode       = null;
+    let peer           = null;
+    let connection     = null; // data channel con el controlador
+    let localStream    = null; // stream de cámara + micrófono del performer
+    let audioCtx       = null;
+    let isConnected    = false;
+
+    // ─── Inicialización ───────────────────────────────────────────────────────
+    function init() {
+      roomCode = generateRoomCode();
+      document.getElementById('room-code').textContent = roomCode;
+    }
+
+    // ─── UI ───────────────────────────────────────────────────────────────────
+
+    function updateStatusDot(estado) {
+      const dot = document.getElementById('status-dot');
+      dot.className = '';
+      if (estado === 'naranja') dot.classList.add('naranja');
+      if (estado === 'verde')   dot.classList.add('verde');
+    }
+
+    function showError(msg) {
+      const el = document.getElementById('error-msg');
+      el.textContent = msg;
+      el.style.display = 'block';
+    }
+
+    // ─── Generación de código de sala ─────────────────────────────────────────
+
+    function generateRoomCode() {
+      let code = '';
+      for (let i = 0; i < 5; i++) {
+        code += LETTERS[Math.floor(Math.random() * LETTERS.length)];
+      }
+      return code;
+    }
+
+    // ─── Cámara y micrófono ───────────────────────────────────────────────────
+
+    async function startCamera() {
+      try {
+        localStream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            // Primera persona — cámara trasera apuntando hacia adelante
+            facingMode: { ideal: 'environment' },
+            width:  { ideal: 1280 },
+            height: { ideal: 720 }
+          },
+          audio: true
+        });
+        document.getElementById('video-performer').srcObject = localStream;
+      } catch (err) {
+        showError('No se pudo acceder a la cámara o el micrófono.');
+        console.error(err);
+      }
+    }
+
+    // ─── WebRTC / PeerJS ──────────────────────────────────────────────────────
+
+    function startPeer() {
+      const peerId = PEER_ID_PREFIX + roomCode;
+
+      peer = new Peer(peerId, PEER_CONFIG);
+
+      peer.on('open', () => {
+        // PeerJS listo — esperando que el controlador conecte
+      });
+
+      // El controlador llama al performer con call (stream de audio)
+      peer.on('call', (call) => {
+        // Responde con el stream local del performer
+        call.answer(localStream);
+
+        call.on('stream', (remoteStream) => {
+          // Reproduce el audio del espacio del controlador en el dispositivo del performer
+          document.getElementById('audio-controller').srcObject = remoteStream;
+        });
+
+        call.on('error', (err) => {
+          showError('Error en la llamada de audio.');
+          console.error(err);
+        });
+      });
+
+      // El controlador abre también un data channel para enviar comandos
+      peer.on('connection', (conn) => {
+        connection = conn;
+
+        conn.on('open', () => {
+          isConnected = true;
+          updateStatusDot('naranja');
+        });
+
+        conn.on('data', (data) => {
+          handleCommand(data);
+        });
+
+        conn.on('close', () => {
+          isConnected = false;
+          updateStatusDot('rojo');
+        });
+
+        conn.on('error', (err) => {
+          showError('Error en la conexión con el controlador.');
+          console.error(err);
+        });
+      });
+
+      peer.on('error', (err) => {
+        showError('Error de conexión. Recarga la página.');
+        console.error(err);
+      });
+    }
+
+    // ─── Comandos recibidos del controlador ───────────────────────────────────
+
+    function handleCommand(data) {
+      // Comandos y audio se implementan en pasos siguientes
+      // Por ahora solo log para verificar que llegan
+      console.log('Comando recibido:', data);
+    }
+
+    // ─── Audio ────────────────────────────────────────────────────────────────
+
+    function initAudio() {
+      // El AudioContext debe crearse aquí, dentro del gesto del usuario —
+      // si se crea fuera del click el navegador móvil lo suspende y el audio no funciona
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+
+    // ─── Copiar código de sala ────────────────────────────────────────────────
+
+    function copyRoomCode() {
+      if (!roomCode) return;
+
+      // Texto a compartir incluye el código para que el controlador lo ingrese
+      const texto = roomCode;
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(texto).then(() => showCopyFeedback());
+      } else {
+        // Fallback para navegadores que no soportan clipboard API
+        const input = document.createElement('input');
+        input.value = texto;
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand('copy');
+        document.body.removeChild(input);
+        showCopyFeedback();
+      }
+    }
+
+    function showCopyFeedback() {
+      const el = document.getElementById('copy-feedback');
+      el.classList.add('visible');
+      setTimeout(() => el.classList.remove('visible'), 1500);
+    }
+
+    // ─── Event listeners ──────────────────────────────────────────────────────
+
+    document.getElementById('btn-iniciar').addEventListener('click', async () => {
+      // Iniciar AudioContext dentro del gesto del usuario
+      initAudio();
+
+      // Ocultar pantalla de permiso
+      document.getElementById('screen-permission').classList.add('oculto');
+
+      // Activar cámara y micrófono
+      await startCamera();
+
+      // Iniciar PeerJS y esperar al controlador
+      startPeer();
+    });
+
+    document.getElementById('room-code-container').addEventListener('click', copyRoomCode);
+
+    // ─── Arranque ─────────────────────────────────────────────────────────────
+    init();
+  </script>
+
+</body>
+</html>
