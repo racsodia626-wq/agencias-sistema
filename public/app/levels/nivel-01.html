@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>AGENCIAS — Controlador</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --color-bg: #050810;
+      --color-primary: #00D4FF;
+      --color-success: #00FF88;
+      --color-warning: #FFB800;
+      --color-danger: #FF3366;
+      --font-mono: 'Share Tech Mono', monospace;
+      --font-display: 'Rajdhani', sans-serif;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: var(--color-bg);
+    }
+
+    /* ── Pantalla de ingreso de código ─────────────────────────────────────── */
+
+    #screen-setup {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: var(--color-bg);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 40px;
+      padding: 32px 24px;
+      z-index: 10;
+    }
+
+    #screen-setup.oculto {
+      display: none;
+    }
+
+    .setup-title {
+      font-family: var(--font-display);
+      font-size: 48px;
+      font-weight: 600;
+      letter-spacing: 10px;
+      color: var(--color-primary);
+    }
+
+    .setup-hint {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: rgba(0, 212, 255, 0.45);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      text-align: center;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      width: 100%;
+      max-width: 320px;
+    }
+
+    #input-code {
+      width: 100%;
+      background: transparent;
+      border: 1px solid rgba(0, 212, 255, 0.5);
+      color: var(--color-primary);
+      font-family: var(--font-mono);
+      font-size: 28px;
+      letter-spacing: 10px;
+      text-align: center;
+      text-transform: uppercase;
+      padding: 16px;
+      outline: none;
+      /* Resalta el borde al enfocar */
+      transition: border-color 0.15s ease;
+      /* Sin redondeo — estética de interfaz técnica */
+      border-radius: 0;
+      -webkit-appearance: none;
+    }
+
+    #input-code:focus {
+      border-color: var(--color-primary);
+    }
+
+    #input-code::placeholder {
+      color: rgba(0, 212, 255, 0.2);
+      letter-spacing: 6px;
+    }
+
+    #btn-conectar {
+      width: 100%;
+      background: transparent;
+      border: 1px solid var(--color-primary);
+      color: var(--color-primary);
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: 6px;
+      padding: 18px;
+      text-transform: uppercase;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+
+    #btn-conectar:active {
+      background: var(--color-primary);
+      color: var(--color-bg);
+    }
+
+    #btn-conectar:disabled {
+      opacity: 0.35;
+      cursor: default;
+    }
+
+    /* ── Pantalla de sesión ─────────────────────────────────────────────────── */
+
+    #screen-session {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+    }
+
+    #screen-session.visible {
+      display: block;
+    }
+
+    /* Video del performer ocupa toda la pantalla */
+    #video-performer {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;
+      touch-action: none;
+    }
+
+    /* Overlay encima del video */
+    #overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+    }
+
+    /* Punto de status — esquina superior izquierda */
+    #header-bar {
+      position: absolute;
+      top: 20px;
+      left: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    #status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--color-danger);
+      box-shadow: 0 0 6px var(--color-danger);
+      animation: pulse-red 2s infinite;
+    }
+
+    #status-dot.naranja {
+      background: var(--color-warning);
+      box-shadow: 0 0 6px var(--color-warning);
+      animation: pulse-orange 2s infinite;
+    }
+
+    #status-dot.verde {
+      background: var(--color-success);
+      box-shadow: 0 0 6px var(--color-success);
+      animation: none;
+    }
+
+    @keyframes pulse-red {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.3; }
+    }
+
+    @keyframes pulse-orange {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.5; }
+    }
+
+    /* ── Mensajes de error y estado ────────────────────────────────────────── */
+
+    #error-msg {
+      position: fixed;
+      bottom: 80px;
+      left: 16px;
+      right: 16px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--color-danger);
+      letter-spacing: 1px;
+      text-align: center;
+      display: none;
+      z-index: 20;
+    }
+
+    #btn-reintentar {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: transparent;
+      border: 1px solid var(--color-danger);
+      color: var(--color-danger);
+      font-family: var(--font-display);
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: 4px;
+      padding: 12px 28px;
+      text-transform: uppercase;
+      cursor: pointer;
+      display: none;
+      z-index: 20;
+      -webkit-tap-highlight-color: transparent;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+
+    #btn-reintentar:active {
+      background: var(--color-danger);
+      color: var(--color-bg);
+    }
+
+    /* Audio del performer — oculto, solo reproduce */
+    #audio-performer {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Pantalla de ingreso de código de sala -->
+  <div id="screen-setup">
+    <h1 class="setup-title">AGENCIAS</h1>
+    <p class="setup-hint">Ingresa el código del performer</p>
+
+    <div class="input-group">
+      <input
+        id="input-code"
+        type="text"
+        maxlength="5"
+        placeholder="· · · · ·"
+        autocomplete="off"
+        autocorrect="off"
+        autocapitalize="characters"
+        spellcheck="false"
+      >
+      <button id="btn-conectar">CONECTAR</button>
+    </div>
+  </div>
+
+  <!-- Pantalla de sesión: video del performer + overlay -->
+  <div id="screen-session">
+    <video id="video-performer" autoplay playsinline muted></video>
+
+    <div id="overlay">
+      <div id="header-bar">
+        <div id="status-dot"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Audio del performer — separado del video para control independiente -->
+  <audio id="audio-performer" autoplay playsinline></audio>
+
+  <!-- Error y botón de reintento -->
+  <div id="error-msg"></div>
+  <button id="btn-reintentar">REINTENTAR</button>
+
+  <!-- PeerJS -->
+  <script src="https://unpkg.com/peerjs@1.5.1/dist/peerjs.min.js"></script>
+  <!-- Credenciales TURN y config de PeerJS — mismo archivo que usa camera.html -->
+  <script src="../core/config.js"></script>
+
+  <script>
+    // ─── Constantes ───────────────────────────────────────────────────────────
+    const PEER_ID_PREFIX = 'agencias-cam-';
+
+    // ─── Estado ───────────────────────────────────────────────────────────────
+    let peer        = null;
+    let activeCall  = null;
+    let connection  = null; // data channel — para comandos futuros
+    let micStream   = null; // solo micrófono — el controlador nunca usa cámara
+    let audioCtx    = null;
+    let isConnected = false;
+
+    // ─── Inicialización ───────────────────────────────────────────────────────
+    function init() {
+      // El input fuerza mayúsculas mientras el usuario escribe
+      document.getElementById('input-code').addEventListener('input', (e) => {
+        e.target.value = e.target.value.toUpperCase();
+      });
+    }
+
+    // ─── UI ───────────────────────────────────────────────────────────────────
+
+    function showSession() {
+      document.getElementById('screen-setup').classList.add('oculto');
+      document.getElementById('screen-session').classList.add('visible');
+    }
+
+    function updateStatusDot(estado) {
+      const dot = document.getElementById('status-dot');
+      dot.className = '';
+      if (estado === 'naranja') dot.classList.add('naranja');
+      if (estado === 'verde')   dot.classList.add('verde');
+    }
+
+    function showError(msg) {
+      const el = document.getElementById('error-msg');
+      el.textContent = msg;
+      el.style.display = 'block';
+      document.getElementById('btn-reintentar').style.display = 'block';
+    }
+
+    function hideError() {
+      document.getElementById('error-msg').style.display = 'none';
+      document.getElementById('btn-reintentar').style.display = 'none';
+    }
+
+    function resetToSetup() {
+      // Destruye la conexión anterior si existe
+      if (activeCall) { activeCall.close(); activeCall = null; }
+      if (connection) { connection.close(); connection = null; }
+      if (peer)       { peer.destroy(); peer = null; }
+      if (micStream)  { micStream.getTracks().forEach(t => t.stop()); micStream = null; }
+
+      isConnected = false;
+
+      // Limpia el video
+      const video = document.getElementById('video-performer');
+      video.srcObject = null;
+
+      // Vuelve a pantalla de ingreso
+      document.getElementById('screen-session').classList.remove('visible');
+      document.getElementById('screen-setup').classList.remove('oculto');
+      document.getElementById('btn-conectar').disabled = false;
+      hideError();
+    }
+
+    // ─── Audio ────────────────────────────────────────────────────────────────
+
+    function initAudio() {
+      // El AudioContext debe crearse aquí, dentro del gesto del usuario —
+      // si se crea fuera del click el navegador móvil lo suspende y el audio no funciona
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+
+    // ─── Micrófono del controlador ────────────────────────────────────────────
+
+    async function getMic() {
+      // Solo micrófono — el controlador nunca pide acceso a la cámara
+      micStream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+        video: false
+      });
+      return micStream;
+    }
+
+    // ─── WebRTC / PeerJS ──────────────────────────────────────────────────────
+
+    async function conectar(roomCode) {
+      const performerId = PEER_ID_PREFIX + roomCode;
+
+      // El controlador crea un peer con ID aleatorio — no necesita ID fijo
+      peer = new Peer(PEER_CONFIG);
+
+      peer.on('open', async () => {
+        try {
+          // Llama al performer enviando el stream del micrófono del controlador
+          activeCall = peer.call(performerId, micStream);
+
+          activeCall.on('stream', (remoteStream) => {
+            // Recibe el stream del performer: video (cámara) + audio (micrófono del performer)
+            document.getElementById('video-performer').srcObject = remoteStream;
+            document.getElementById('audio-performer').srcObject = remoteStream;
+
+            isConnected = true;
+            updateStatusDot('naranja');
+          });
+
+          activeCall.on('error', (err) => {
+            showError('Error en la llamada. Verifica el código e intenta de nuevo.');
+            console.error(err);
+          });
+
+          activeCall.on('close', () => {
+            if (isConnected) {
+              showError('La conexión con el performer se cortó.');
+            }
+          });
+
+          // Abre data channel para comandos futuros
+          connection = peer.connect(performerId);
+
+          connection.on('error', (err) => {
+            // No bloquea la sesión — el audio/video puede funcionar sin el data channel
+            console.warn('Error en data channel:', err);
+          });
+
+        } catch (err) {
+          showError('No se pudo conectar. Verifica el código e intenta de nuevo.');
+          console.error(err);
+        }
+      });
+
+      // Si el peer del performer no existe, PeerJS lanza error tipo 'peer-unavailable'
+      peer.on('error', (err) => {
+        if (err.type === 'peer-unavailable') {
+          showError('Código incorrecto o el performer aún no está en línea.');
+        } else {
+          showError('Error de conexión. Intenta de nuevo.');
+        }
+        document.getElementById('btn-conectar').disabled = false;
+        console.error(err);
+      });
+    }
+
+    // ─── Event listeners ──────────────────────────────────────────────────────
+
+    document.getElementById('btn-conectar').addEventListener('click', async () => {
+      const code = document.getElementById('input-code').value.trim().toUpperCase();
+
+      if (code.length !== 5) {
+        showError('El código debe tener 5 letras.');
+        return;
+      }
+
+      hideError();
+      document.getElementById('btn-conectar').disabled = true;
+
+      // AudioContext dentro del gesto del usuario
+      initAudio();
+
+      try {
+        await getMic();
+      } catch (err) {
+        showError('No se pudo acceder al micrófono.');
+        document.getElementById('btn-conectar').disabled = false;
+        console.error(err);
+        return;
+      }
+
+      showSession();
+      await conectar(code);
+    });
+
+    document.getElementById('btn-reintentar').addEventListener('click', resetToSetup);
+
+    // También conecta con Enter desde el teclado
+    document.getElementById('input-code').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') document.getElementById('btn-conectar').click();
+    });
+
+    // ─── Arranque ─────────────────────────────────────────────────────────────
+    init();
+  </script>
+
+</body>
+</html>
