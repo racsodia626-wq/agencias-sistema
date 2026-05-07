@@ -388,12 +388,21 @@
       // El controlador crea un peer con ID aleatorio — no necesita ID fijo
       peer = new Peer(PEER_CONFIG);
 
-      peer.on('open', async () => {
+      console.log('[CONTROLADOR] Peer creado — esperando open');
+
+      peer.on('open', async (id) => {
+        console.log('[CONTROLADOR] Peer open — ID asignado:', id);
+        console.log('[CONTROLADOR] Intentando llamar a performer:', performerId);
+        console.log('[CONTROLADOR] micStream activo:', micStream ? micStream.getTracks().map(t => t.kind + ':' + t.readyState) : 'null');
         try {
           // Llama al performer enviando el stream del micrófono del controlador
           activeCall = peer.call(performerId, micStream);
 
+          console.log('[CONTROLADOR] call() enviado — esperando stream del performer');
+
           activeCall.on('stream', (remoteStream) => {
+            console.log('[CONTROLADOR] Stream recibido del performer');
+            console.log('[CONTROLADOR] Tracks en remoteStream:', remoteStream.getTracks().map(t => t.kind + ':' + t.readyState));
             // Recibe el stream del performer: video (cámara) + audio (micrófono del performer)
             document.getElementById('video-performer').srcObject = remoteStream;
             document.getElementById('audio-performer').srcObject = remoteStream;
@@ -403,11 +412,12 @@
           });
 
           activeCall.on('error', (err) => {
+            console.error('[CONTROLADOR] Error en activeCall:', err);
             showError('Error en la llamada. Verifica el código e intenta de nuevo.');
-            console.error(err);
           });
 
           activeCall.on('close', () => {
+            console.log('[CONTROLADOR] Call cerrado');
             if (isConnected) {
               showError('La conexión con el performer se cortó.');
             }
@@ -416,26 +426,30 @@
           // Abre data channel para comandos futuros
           connection = peer.connect(performerId);
 
+          connection.on('open', () => {
+            console.log('[CONTROLADOR] Data channel abierto');
+          });
+
           connection.on('error', (err) => {
             // No bloquea la sesión — el audio/video puede funcionar sin el data channel
-            console.warn('Error en data channel:', err);
+            console.warn('[CONTROLADOR] Error en data channel:', err);
           });
 
         } catch (err) {
+          console.error('[CONTROLADOR] Error al intentar conectar:', err);
           showError('No se pudo conectar. Verifica el código e intenta de nuevo.');
-          console.error(err);
         }
       });
 
       // Si el peer del performer no existe, PeerJS lanza error tipo 'peer-unavailable'
       peer.on('error', (err) => {
+        console.error('[CONTROLADOR] Peer error — tipo:', err.type, err);
         if (err.type === 'peer-unavailable') {
           showError('Código incorrecto o el performer aún no está en línea.');
         } else {
           showError('Error de conexión. Intenta de nuevo.');
         }
         document.getElementById('btn-conectar').disabled = false;
-        console.error(err);
       });
     }
 
