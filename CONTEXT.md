@@ -186,10 +186,11 @@ Las observaciones se documentan en session-notes/ — un archivo por sesión.
 - [x] Crear archivo .env con credenciales reales de Metered.ca — hecho 2026-04-29
 - [x] Actualizar .env.example con URLs nuevas (global.relay.metered.ca) — hecho 2026-04-29
 - [x] Construir public/app/index.html — pantalla de inicio con botones CÁMARA y CONTROLADOR — probado en celular y laptop — hecho 2026-04-29
-- [ ] Construir public/app/core/camera.html — dispositivo del performer — próximo paso
-- [ ] Construir public/app/levels/nivel-01.html — tutorial + primer nivel
-- [ ] Audio en mobile — AudioContext debe crearse dentro del gesto del usuario
-- [ ] Detección de manos (palmas y dorso) — sustituye detección de cuerpo completo — decisión tomada 2026-04-29
+- [x] Construir public/app/core/camera.html — dispositivo del performer, primera persona — probado en celular — hecho 2026-05-06
+- [ ] Agregar detección de manos (palmas y dorso) a camera.html — Validación A del flujo de activación
+- [ ] Agregar botón virtual en camera.html — Validación B: mano del performer entra en zona que solo el controlador ve
+- [ ] Construir public/app/levels/nivel-01.html — controlador: ingresa código, recibe stream, envía comandos
+- [ ] Conectar comandos del controlador al performer — data channel + audio + sonidos de cada comando
 - [ ] Pantalla intermedia tutorial → Nivel 01 — contenido por definir
 - [ ] Obstáculos — pendiente hasta resolver ángulo de cámara
 - [ ] Definir símbolos universales para comandos
