@@ -222,21 +222,6 @@
       display: none;
     }
 
-    /* Diagnóstico visual temporal — mostrar tracks de localStream en pantalla */
-    #debug-tracks {
-      position: fixed;
-      bottom: 16px;
-      left: 16px;
-      font-family: var(--font-mono);
-      font-size: 10px;
-      color: var(--color-primary);
-      background: rgba(5, 8, 16, 0.8);
-      padding: 6px 10px;
-      letter-spacing: 1px;
-      line-height: 1.6;
-      z-index: 30;
-      pointer-events: none;
-    }
   </style>
 </head>
 <body>
@@ -275,9 +260,6 @@
 
   <!-- Error visible en pantalla -->
   <div id="error-msg"></div>
-
-  <!-- Diagnóstico visual temporal — tracks de localStream -->
-  <div id="debug-tracks"></div>
 
   <!-- PeerJS -->
   <script src="https://unpkg.com/peerjs@1.5.1/dist/peerjs.min.js"></script>
@@ -372,28 +354,15 @@
     function startPeer() {
       const peerId = PEER_ID_PREFIX + roomCode;
 
-      console.log('[PERFORMER] Creando peer con ID:', peerId);
-
       peer = new Peer(peerId, PEER_CONFIG);
 
-      peer.on('open', (id) => {
-        console.log('[PERFORMER] Peer open — registrado como:', id);
-        console.log('[PERFORMER] localStream activo:', localStream ? localStream.getTracks().map(t => t.kind + ':' + t.readyState) : 'null');
-
-        // Diagnóstico visual — mostrar tracks en pantalla del celular
-        const tracks = localStream
-          ? localStream.getTracks().map(t => t.kind + ':' + t.readyState).join('\n')
-          : 'null';
-        document.getElementById('debug-tracks').textContent = 'TRACKS:\n' + tracks;
-      });
+      peer.on('open', () => {});
 
       // El controlador abre un data channel — por ahí recibimos su peer ID y luego los comandos
       peer.on('connection', (conn) => {
-        console.log('[PERFORMER] Data channel recibido del controlador');
         connection = conn;
 
         conn.on('open', () => {
-          console.log('[PERFORMER] Data channel abierto — controlador conectado');
           isConnected = true;
           updateStatusDot('naranja');
         });
@@ -401,43 +370,37 @@
         conn.on('data', (data) => {
           // Primer mensaje del controlador: su peer ID — lo usamos para iniciar el call con video+audio
           if (data && data.type === 'peer-id') {
-            console.log('[PERFORMER] ID del controlador recibido:', data.id);
             const outgoingCall = peer.call(data.id, localStream);
             outgoingCall.on('stream', (remoteStream) => {
-              console.log('[PERFORMER] Stream del controlador recibido (audio)');
-              console.log('[PERFORMER] Tracks del controlador:', remoteStream.getTracks().map(t => t.kind + ':' + t.readyState));
               document.getElementById('audio-controller').srcObject = remoteStream;
             });
-            outgoingCall.on('error', (err) => console.error('[PERFORMER] Error en call saliente:', err));
+            outgoingCall.on('error', (err) => console.error(err));
             return;
           }
           handleCommand(data);
         });
 
         conn.on('close', () => {
-          console.log('[PERFORMER] Data channel cerrado');
           isConnected = false;
           updateStatusDot('rojo');
         });
 
         conn.on('error', (err) => {
-          console.error('[PERFORMER] Error en data channel:', err);
           showError('Error en la conexión con el controlador.');
+          console.error(err);
         });
       });
 
       peer.on('error', (err) => {
-        console.error('[PERFORMER] Peer error — tipo:', err.type, err);
         showError('Error de conexión. Recarga la página.');
+        console.error(err);
       });
     }
 
     // ─── Comandos recibidos del controlador ───────────────────────────────────
 
     function handleCommand(data) {
-      // Comandos y audio se implementan en pasos siguientes
-      // Por ahora solo log para verificar que llegan
-      console.log('Comando recibido:', data);
+      // lógica de comandos se implementa en pasos siguientes
     }
 
     // ─── Audio ────────────────────────────────────────────────────────────────

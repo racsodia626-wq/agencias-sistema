@@ -187,10 +187,10 @@ Las observaciones se documentan en session-notes/ — un archivo por sesión.
 - [x] Actualizar .env.example con URLs nuevas (global.relay.metered.ca) — hecho 2026-04-29
 - [x] Construir public/app/index.html — pantalla de inicio con botones CÁMARA y CONTROLADOR — probado en celular y laptop — hecho 2026-04-29
 - [x] Construir public/app/core/camera.html — dispositivo del performer, primera persona — probado en celular — hecho 2026-05-06
+- [x] Construir public/app/levels/nivel-01.html — conexión WebRTC funcional — video y audio bidireccional entre performer y controlador — probado en celular + laptop — hecho 2026-05-07
 - [ ] Agregar detección de manos (palmas y dorso) a camera.html — Validación A del flujo de activación
-- [ ] Agregar botón virtual en camera.html — Validación B: mano del performer entra en zona que solo el controlador ve
-- [ ] Construir public/app/levels/nivel-01.html — controlador: ingresa código, recibe stream, envía comandos
-- [ ] Conectar comandos del controlador al performer — data channel + audio + sonidos de cada comando
+- [ ] Agregar botón virtual — Validación B: mano del performer entra en zona que solo el controlador ve
+- [ ] Conectar comandos del controlador al performer — data channel + voz + sonidos de cada comando
 - [ ] Pantalla intermedia tutorial → Nivel 01 — contenido por definir
 - [ ] Obstáculos — pendiente hasta resolver ángulo de cámara
 - [ ] Definir símbolos universales para comandos
