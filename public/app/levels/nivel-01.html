@@ -292,6 +292,8 @@
 
   <!-- PeerJS -->
   <script src="https://unpkg.com/peerjs@1.5.1/dist/peerjs.min.js"></script>
+  <!-- Sistema de comandos — voz y sonidos -->
+  <script src="../core/control.js"></script>
   <!-- Credenciales hardcodeadas temporalmente — migrar a Edge Function antes de presentaciones públicas -->
   <script>
     const TURN_USERNAME = '53a9857b1f8305801b737ca3';
@@ -474,6 +476,8 @@
 
       // AudioContext dentro del gesto del usuario
       initAudio();
+      // Pasa el audioCtx a control.js para que pueda sintetizar sonidos
+      initControl(audioCtx);
 
       try {
         await getMic();
@@ -485,6 +489,8 @@
       }
 
       showSession();
+      // Renderiza los botones de control sobre el video
+      renderControls();
       await conectar(code);
     });
 
