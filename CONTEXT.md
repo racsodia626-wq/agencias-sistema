@@ -17,9 +17,13 @@ public/
 ├── app/
 │   ├── index.html — pantalla de inicio: elegir CÁMARA o CONTROLADOR
 │   ├── core/
-│   │   └── camera.html — dispositivo del performer
-│   └── levels/
-│       └── nivel-01.html — tutorial + primer nivel
+│   │   ├── camera.html — dispositivo del performer
+│   │   └── control.js — sistema de comandos del controlador
+│   ├── levels/
+│   │   └── nivel-01.html — tutorial + primer nivel
+│   └── sounds/
+│       ├── commands/ — voces de los 8 comandos (mp3)
+│       └── fx/ — efectos de sonido (mp3)
 └── (página de presentación — arquitectura por confirmar)
 
 Nota: no existe control.html — se eliminó. Todo parte desde index.html.
@@ -179,6 +183,10 @@ Las observaciones se documentan en session-notes/ — un archivo por sesión.
 - Notas sobre lo que estaba pasando en tiempo real
 - Preguntas futuras y réplicas a comentarios
 
+## Decisiones de arquitectura
+
+Los archivos de audio viven en app/sounds/ — al mismo nivel que core/ y levels/. Dentro de sounds/: commands/ para las voces de los 8 comandos, fx/ para efectos de sonido. control.js define qué audio corresponde a cada comando. camera.html solo reproduce lo que recibe por el data channel. Esta separación permite que niveles futuros también accedan a los sonidos sin depender de core/.
+
 ## Trabajo pendiente
 - [x] Crear estructura base del proyecto — hecho 2026-04-26
 - [x] Conectar repo local a GitHub (racsodia626-wq/agencias-sistema) — hecho 2026-04-26
@@ -188,12 +196,14 @@ Las observaciones se documentan en session-notes/ — un archivo por sesión.
 - [x] Construir public/app/index.html — pantalla de inicio con botones CÁMARA y CONTROLADOR — probado en celular y laptop — hecho 2026-04-29
 - [x] Construir public/app/core/camera.html — dispositivo del performer, primera persona — probado en celular — hecho 2026-05-06
 - [x] Construir public/app/levels/nivel-01.html — conexión WebRTC funcional — video y audio bidireccional entre performer y controlador — probado en celular + laptop — hecho 2026-05-07
+- [x] Sistema de audio completo en camera.html: voz pregenerada (.m4a) + 8 sonidos diferenciados por comando — hecho 2026-05-09
+- [x] Archivos de audio en public/app/sounds/commands/ — control.js define qué audio corresponde a cada comando, camera.html solo reproduce lo que recibe — hecho 2026-05-09
 - [ ] Agregar detección de manos (palmas y dorso) a camera.html — Validación A del flujo de activación
 - [ ] Agregar botón virtual — Validación B: mano del performer entra en zona que solo el controlador ve
-- [ ] Conectar comandos del controlador al performer — data channel + voz + sonidos de cada comando
 - [ ] Pantalla intermedia tutorial → Nivel 01 — contenido por definir
 - [ ] Obstáculos — pendiente hasta resolver ángulo de cámara
 - [ ] Definir símbolos universales para comandos
+- [ ] Sistema de audio multilingüe — mantener voz + sonido juntos; sonidos con lógica direccional (tono ascendente = avanzar, descendente = retroceder, paneado izq/der = girar); idioma configurable al inicio de sesión via Web Speech API
 
 ## Decisiones tomadas — 2026-04-29
 - Cámara en primera persona con head mount — reemplaza celular como cámara del performer
