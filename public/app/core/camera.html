@@ -609,6 +609,10 @@
     document.getElementById('btn-iniciar').addEventListener('click', async () => {
       // Activar contexto de voz dentro del gesto — necesario en iOS Safari
       window.speechSynthesis.cancel();
+      // Utterance silenciosa para desbloquear speechSynthesis en iOS — speak() debe llamarse dentro del gesto
+      const silentU = new SpeechSynthesisUtterance('');
+      silentU.volume = 0;
+      window.speechSynthesis.speak(silentU);
       // Iniciar AudioContext dentro del gesto del usuario
       initAudio();
 
