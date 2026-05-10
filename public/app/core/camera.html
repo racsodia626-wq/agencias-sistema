@@ -298,7 +298,7 @@
     let audioCtx            = null;
     let isConnected         = false;
     let performerOscillator = null; // oscilador activo para tonos continuos
-    let performerVoice      = null; // voz en español seleccionada
+    let _voiceAudios        = {};   // objetos Audio precargados por comando
 
     // ─── Inicialización ───────────────────────────────────────────────────────
     function init() {
@@ -407,30 +407,30 @@
 
       switch (id) {
         case 'AVANZA':
-          if (state === 'start') { _speak('avanza');    _startContinuousSound(120, false); }
+          if (state === 'start') { _playVoice('AVANZA');    _startContinuousSound(120, false); }
           if (state === 'end')   { _stopContinuousSound(); }
           break;
         case 'RETROCEDE':
-          if (state === 'start') { _speak('retrocede'); _startContinuousSound(500, true); }
+          if (state === 'start') { _playVoice('RETROCEDE'); _startContinuousSound(500, true); }
           if (state === 'end')   { _stopContinuousSound(); }
           break;
         case 'GIRA IZQ':
-          _speak('gira izquierda'); _playClick();
+          _playVoice('GIRA IZQ'); _playClick();
           break;
         case 'GIRA DER':
-          _speak('gira derecha');   _playClick();
+          _playVoice('GIRA DER'); _playClick();
           break;
         case 'SALTA':
-          _speak('salta');          _playPoing();
+          _playVoice('SALTA');    _playPoing();
           break;
         case 'AGACHATE':
-          _speak('agáchate');       _playTick();
+          _playVoice('AGACHATE'); _playTick();
           break;
         case 'RODAR':
-          _speak('rodar');          _playRodar();
+          _playVoice('RODAR');    _playRodar();
           break;
         case 'STOP':
-          _speak('stop');           _playStopSound();
+          _playVoice('STOP');     _playStopSound();
           break;
       }
     }
@@ -441,31 +441,35 @@
       // El AudioContext debe crearse aquí, dentro del gesto del usuario —
       // si se crea fuera del click el navegador móvil lo suspende y el audio no funciona
       audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      _selectVoice();
+      _preloadVoices();
     }
 
-    function _selectVoice() {
-      // getVoices() puede estar vacío al cargar — se rellena de forma asíncrona
-      const trySelect = () => {
-        const voices = window.speechSynthesis.getVoices();
-        if (!voices.length) return;
-        performerVoice =
-          voices.find(v => v.lang === 'es-ES') ||
-          voices.find(v => v.lang === 'es-MX') ||
-          voices.find(v => v.lang.startsWith('es')) ||
-          null;
+    // Debe llamarse dentro del gesto del usuario (INICIAR) para que iOS Safari
+    // permita .play() posterior desde callbacks asíncronos de WebRTC
+    function _preloadVoices() {
+      const BASE = '../sounds/commands/';
+      const MAP  = {
+        'AVANZA':    'avanza',
+        'RETROCEDE': 'retrocede',
+        'GIRA IZQ':  'gira-izq',
+        'GIRA DER':  'gira-der',
+        'SALTA':     'salta',
+        'AGACHATE':  'agachate',
+        'RODAR':     'rodar',
+        'STOP':      'stop',
       };
-      trySelect();
-      window.speechSynthesis.addEventListener('voiceschanged', trySelect);
+      for (const [id, file] of Object.entries(MAP)) {
+        const audio = new Audio(`${BASE}${file}.m4a`);
+        audio.load();
+        _voiceAudios[id] = audio;
+      }
     }
 
-    function _speak(text) {
-      window.speechSynthesis.cancel();
-      const u  = new SpeechSynthesisUtterance(text);
-      u.lang   = 'es-ES';
-      u.rate   = 1.1;
-      if (performerVoice) u.voice = performerVoice;
-      window.speechSynthesis.speak(u);
+    function _playVoice(cmdId) {
+      const audio = _voiceAudios[cmdId];
+      if (!audio) return;
+      audio.currentTime = 0;
+      audio.play().catch(() => {});
     }
 
     function _startContinuousSound(freq, descending) {
@@ -607,12 +611,6 @@
     // ─── Event listeners ──────────────────────────────────────────────────────
 
     document.getElementById('btn-iniciar').addEventListener('click', async () => {
-      // Activar contexto de voz dentro del gesto — necesario en iOS Safari
-      window.speechSynthesis.cancel();
-      // Utterance silenciosa para desbloquear speechSynthesis en iOS — speak() debe llamarse dentro del gesto
-      const silentU = new SpeechSynthesisUtterance('');
-      silentU.volume = 0;
-      window.speechSynthesis.speak(silentU);
       // Iniciar AudioContext dentro del gesto del usuario
       initAudio();
 
@@ -630,8 +628,6 @@
 
     // ─── Arranque ─────────────────────────────────────────────────────────────
     init();
-    // Registrar selección de voz al cargar — voiceschanged puede disparar antes del gesto
-    _selectVoice();
   </script>
 
 </body>
