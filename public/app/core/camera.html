@@ -607,6 +607,8 @@
     // ─── Event listeners ──────────────────────────────────────────────────────
 
     document.getElementById('btn-iniciar').addEventListener('click', async () => {
+      // Activar contexto de voz dentro del gesto — necesario en iOS Safari
+      window.speechSynthesis.cancel();
       // Iniciar AudioContext dentro del gesto del usuario
       initAudio();
 
@@ -624,6 +626,8 @@
 
     // ─── Arranque ─────────────────────────────────────────────────────────────
     init();
+    // Registrar selección de voz al cargar — voiceschanged puede disparar antes del gesto
+    _selectVoice();
   </script>
 
 </body>
