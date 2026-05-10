@@ -291,12 +291,14 @@
     const LETTERS = 'ABCDEFGHJKLMNPQRSTUVWXYZ'; // sin I ni O para evitar confusión
 
     // ─── Estado ───────────────────────────────────────────────────────────────
-    let roomCode       = null;
-    let peer           = null;
-    let connection     = null; // data channel con el controlador
-    let localStream    = null; // stream de cámara + micrófono del performer
-    let audioCtx       = null;
-    let isConnected    = false;
+    let roomCode            = null;
+    let peer                = null;
+    let connection          = null; // data channel con el controlador
+    let localStream         = null; // stream de cámara + micrófono del performer
+    let audioCtx            = null;
+    let isConnected         = false;
+    let performerOscillator = null; // oscilador activo para tonos continuos
+    let performerVoice      = null; // voz en español seleccionada
 
     // ─── Inicialización ───────────────────────────────────────────────────────
     function init() {
@@ -400,7 +402,37 @@
     // ─── Comandos recibidos del controlador ───────────────────────────────────
 
     function handleCommand(data) {
-      // lógica de comandos se implementa en pasos siguientes
+      if (!data || data.type !== 'command') return;
+      const { id, state } = data;
+
+      switch (id) {
+        case 'AVANZA':
+          if (state === 'start') { _speak('avanza');    _startContinuousSound(120, false); }
+          if (state === 'end')   { _stopContinuousSound(); }
+          break;
+        case 'RETROCEDE':
+          if (state === 'start') { _speak('retrocede'); _startContinuousSound(500, true); }
+          if (state === 'end')   { _stopContinuousSound(); }
+          break;
+        case 'GIRA IZQ':
+          _speak('gira izquierda'); _playClick();
+          break;
+        case 'GIRA DER':
+          _speak('gira derecha');   _playClick();
+          break;
+        case 'SALTA':
+          _speak('salta');          _playPoing();
+          break;
+        case 'AGACHATE':
+          _speak('agáchate');       _playTick();
+          break;
+        case 'RODAR':
+          _speak('rodar');          _playRodar();
+          break;
+        case 'STOP':
+          _speak('stop');           _playStopSound();
+          break;
+      }
     }
 
     // ─── Audio ────────────────────────────────────────────────────────────────
@@ -409,6 +441,139 @@
       // El AudioContext debe crearse aquí, dentro del gesto del usuario —
       // si se crea fuera del click el navegador móvil lo suspende y el audio no funciona
       audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      _selectVoice();
+    }
+
+    function _selectVoice() {
+      // getVoices() puede estar vacío al cargar — se rellena de forma asíncrona
+      const trySelect = () => {
+        const voices = window.speechSynthesis.getVoices();
+        if (!voices.length) return;
+        performerVoice =
+          voices.find(v => v.lang === 'es-ES') ||
+          voices.find(v => v.lang === 'es-MX') ||
+          voices.find(v => v.lang.startsWith('es')) ||
+          null;
+      };
+      trySelect();
+      window.speechSynthesis.addEventListener('voiceschanged', trySelect);
+    }
+
+    function _speak(text) {
+      window.speechSynthesis.cancel();
+      const u  = new SpeechSynthesisUtterance(text);
+      u.lang   = 'es-ES';
+      u.rate   = 1.1;
+      if (performerVoice) u.voice = performerVoice;
+      window.speechSynthesis.speak(u);
+    }
+
+    function _startContinuousSound(freq, descending) {
+      if (!audioCtx || performerOscillator) return;
+      const osc  = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type            = 'sine';
+      osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+      if (descending) {
+        // RETROCEDE: barrido descendente lento mientras dura el toque
+        osc.frequency.linearRampToValueAtTime(freq * 0.4, audioCtx.currentTime + 3);
+      }
+      gain.gain.setValueAtTime(0, audioCtx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.35, audioCtx.currentTime + 0.05);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      performerOscillator = { osc, gain };
+    }
+
+    function _stopContinuousSound() {
+      if (!audioCtx || !performerOscillator) return;
+      const { osc, gain } = performerOscillator;
+      const t = audioCtx.currentTime;
+      gain.gain.linearRampToValueAtTime(0, t + 0.06);
+      osc.stop(t + 0.07);
+      performerOscillator = null;
+    }
+
+    function _playClick() {
+      if (!audioCtx) return;
+      const osc  = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type            = 'sine';
+      osc.frequency.value = 900;
+      gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.05);
+    }
+
+    function _playPoing() {
+      // Barrido ascendente — SALTA
+      if (!audioCtx) return;
+      const osc  = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(200, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.3);
+      gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.35);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.35);
+    }
+
+    function _playTick() {
+      // Barrido descendente — AGÁCHATE
+      if (!audioCtx) return;
+      const osc  = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(80, audioCtx.currentTime + 0.22);
+      gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.25);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.25);
+    }
+
+    function _playRodar() {
+      // Clicks acelerados — RODAR
+      if (!audioCtx) return;
+      const count    = 8;
+      const interval = 0.055; // segundos entre cada click
+      for (let i = 0; i < count; i++) {
+        const osc  = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        const t    = audioCtx.currentTime + i * interval;
+        osc.type            = 'sine';
+        osc.frequency.value = 700;
+        gain.gain.setValueAtTime(0.4, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.04);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(t);
+        osc.stop(t + 0.04);
+      }
+    }
+
+    function _playStopSound() {
+      // Tono corto con corte brusco — STOP
+      if (!audioCtx) return;
+      const osc  = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type            = 'square';
+      osc.frequency.value = 220;
+      gain.gain.setValueAtTime(0.6, audioCtx.currentTime);
+      gain.gain.setValueAtTime(0, audioCtx.currentTime + 0.08); // corte abrupto
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.09);
     }
 
     // ─── Copiar código de sala ────────────────────────────────────────────────
