@@ -43,9 +43,9 @@ Minimalista. Contiene:
 3. La cámara trasera se activa — el performer ve lo que graba
 4. Luz de status: ROJO — sin controlador conectado
 5. El controlador ingresa el código → luz cambia a NARANJA
-6. Aparece silueta de cuerpo humano de sexo indefinido — estilo señalética de sanitario o señal de piso mojado — con mensaje "DETECTANDO PERFORMER"
-7. El performer se posiciona hasta llenar la silueta
-8. Cuando el cuerpo es detectado → luz cambia a VERDE → el juego puede comenzar
+6. Cámara en primera persona activa — el performer muestra su mano (palma o dorso) hacia la cámara
+7. El controlador ve la mano del performer en su pantalla — la silueta SVG fue descartada
+8. Cuando la mano es detectada → luz cambia a VERDE → el juego puede comenzar
 9. Durante la sesión: el performer solo escucha — voz del comando + sonido específico
 10. El performer no sabe en qué nivel está ni qué comando viene después
 11. Si sale del cuadro antes de ser detectado: el juego no inicia
@@ -122,9 +122,11 @@ Minimalista. Contiene:
 Variaciones de color respecto a la app. Por definir cuando se trabaje en ella.
 
 ## Página de presentación
-- Vive en el mismo repo que la app
-- Desde la página se puede entrar a la app directamente
-- Colores y estética: variaciones respecto a la app — por definir al trabajar en ella
+- Vive en Lovable — proyecto separado, no en este repo
+- Stack: React + framer-motion + Tailwind
+- Para editarla: lovable.dev → buscar proyecto AGENCIAS
+- Desde la página hay un botón para entrar a la app — pendiente de agregar en Lovable
+- URL de la app: https://agencies-choreography-system.vercel.app/app/
 
 ## Obstáculos
 Pendiente de resolver. La cámara en ángulo fijo dificulta el diseño. Se resolverá al implementar cámara en primera persona. No construir obstáculos ni diseñar niveles hasta tener esa solución — los niveles dependen directamente de los obstáculos.
@@ -186,6 +188,11 @@ Las observaciones se documentan en session-notes/ — un archivo por sesión.
 ## Decisiones de arquitectura
 
 Los archivos de audio viven en app/sounds/ — al mismo nivel que core/ y levels/. Dentro de sounds/: commands/ para las voces de los 8 comandos, fx/ para efectos de sonido. control.js define qué audio corresponde a cada comando. camera.html solo reproduce lo que recibe por el data channel. Esta separación permite que niveles futuros también accedan a los sonidos sin depender de core/.
+
+Página de presentación — proyecto separado
+La página de presentación de AGENCIAS vive en Lovable (proyecto separado, no en este repo). El código fuente es React con framer-motion y Tailwind. Para darle continuidad hay que entrar a lovable.dev y buscar el proyecto AGENCIAS.
+La conexión entre ambos proyectos es un botón en la página de Lovable que apunta a https://agencies-choreography-system.vercel.app/app/ para entrar a la app.
+Pendiente: agregar ese botón en Lovable.
 
 ## Trabajo pendiente
 - [x] Crear estructura base del proyecto — hecho 2026-04-26

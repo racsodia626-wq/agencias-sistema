@@ -95,16 +95,10 @@ github.com/racsodia626-wq/agencias-sistema
 ### Assets de la app
 
 **Silueta SVG del performer**
-Por crear. Descripción exacta:
-- Cuerpo humano completo de sexo indefinido
-- Estilo señalética universal — similar a señal de sanitario o señal de piso mojado
-- Pose estática, de frente
-- Sin detalles — solo silueta limpia
-- Color: #00D4FF con opacidad reducida sobre el video
-- Al completar detección: cambia a verde #00FF88 y desaparece
+Descartada. Con la cámara en primera persona (POV) ya no hay cuerpo del performer visible en el encuadre — la silueta de posicionamiento no aplica. La detección se hace con manos (palmas y dorso), no con cuerpo completo.
 
 **Sonidos de cada comando**
-Por crear — descripción completa en CLAUDE.md sección Sistema de audio.
+Creados — voces en .m4a + efectos de sonido en public/app/sounds/commands/. Descripción completa en CLAUDE.md sección Sistema de audio.
 
 **Iconos y símbolos de botones**
 Por definir — explorar símbolos universales multiidioma.

@@ -102,6 +102,50 @@
       background: var(--color-primary);
       color: var(--color-bg);
     }
+
+    .btn-wrapper {
+      position: relative;
+      width: 100%;
+    }
+
+    .tooltip {
+      position: absolute;
+      left: 0;
+      right: 0;
+      background: var(--color-bg);
+      border: 1px solid var(--color-primary);
+      padding: 16px 20px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: rgba(0, 212, 255, 0.85);
+      line-height: 1.7;
+      opacity: 1;
+      pointer-events: none;
+      z-index: 10;
+      top: 0;
+    }
+
+    .tooltip ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .tooltip li::before {
+      content: '→ ';
+      color: var(--color-primary);
+    }
+
+    /* desktop: hover muestra el tooltip */
+    .btn-wrapper:hover .tooltip {
+      opacity: 1;
+    }
+
+    /* móvil: clase .visible aplicada por JS */
+    .tooltip.visible {
+      opacity: 1;
+    }
   </style>
 </head>
 <body>
@@ -115,9 +159,57 @@
     <p style="font-size: 11px; color: rgba(0, 212, 255, 0.35); letter-spacing: 2px; text-transform: uppercase; text-align: center;">Elige tu rol</p>
 
     <nav class="botones">
-      <a href="core/camera.html" class="btn">CÁMARA</a>
-      <a href="levels/nivel-01.html" class="btn">CONTROLADOR</a>
+      <div class="btn-wrapper">
+        <a href="core/camera.html" class="btn">CÁMARA</a>
+        <div class="tooltip">
+          <ul>
+            <li>Necesitas: teléfono + audífonos bluetooth</li>
+            <li>Monta el teléfono en tu cabeza apuntando hacia adelante</li>
+            <li>Presiona INICIAR y comparte el código con el controlador</li>
+          </ul>
+        </div>
+      </div>
+      <div class="btn-wrapper">
+        <a href="levels/nivel-01.html" class="btn">CONTROLADOR</a>
+        <div class="tooltip">
+          <ul>
+            <li>Necesitas: teléfono o laptop</li>
+            <li>Ingresa el código que te da el performer</li>
+            <li>Verás lo que el performer ve — usa los botones para enviarle comandos</li>
+          </ul>
+        </div>
+      </div>
     </nav>
   </div>
+  <script>
+    (function () {
+      var activeBtn = null;
+
+      document.querySelectorAll('.btn').forEach(function (btn) {
+        btn.addEventListener('touchstart', function (e) {
+          if (activeBtn === this) {
+            // segundo tap en el mismo botón: navegar
+            window.location.href = this.getAttribute('href');
+            return;
+          }
+
+          e.preventDefault(); // evita navegación en el primer tap
+
+          // cerrar tooltip anterior si hay uno abierto
+          if (activeBtn) {
+            activeBtn.parentElement.querySelector('.tooltip').classList.remove('visible');
+          }
+
+          // mostrar tooltip del botón tocado
+          activeBtn = this;
+          this.parentElement.querySelector('.tooltip').classList.add('visible');
+        }, { passive: false });
+      });
+    })();
+
+    document.querySelectorAll('.btn-wrapper').forEach(function(w) {
+      console.log('wrapper:', w, 'tooltip:', w.querySelector('.tooltip'));
+    });
+  </script>
 </body>
 </html>

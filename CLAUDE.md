@@ -54,33 +54,9 @@ Sin comando activo → tono para → performer se detiene
 
 ## Página de presentación
 
-### URL
-Por confirmar al conectar Vercel al nuevo repo
-
-### Idiomas
-Español e inglés con toggle — ambos deben estar siempre sincronizados
-
-### Secciones en orden — no cambiar sin consultar
-1. Hero — título AGENCIAS + nombre del artista
-2. Sobre el proyecto — descripción + pregunta central
-3. Los tres roles — Controlador, Performer, Sistema
-4. Lenguaje corporal y estética
-5. Lógica de videojuegos
-6. Plan de desarrollo — etapas
-7. Abierto a colaboración
-8. Sobre el artista — bio + foto
-9. Footer — contacto, email, Instagram
-
-### Estética
-- Fondo: #050810
-- Tipografía: Share Tech Mono + Rajdhani
-- Color principal: #00D4FF
-- Coherente con la app — misma paleta y tipografía
-
-### Reglas
-- Las secciones no se reordenan ni eliminan sin consultar
-- El contenido de texto lo revisa y aprueba Racso antes de publicar
-- A futuro: embed teaser Sabor Fresa, sección gira Europa 2026, mini experimento interactivo para visitantes
+Vive en Lovable — proyecto separado, no en este repo. Stack: React + framer-motion + Tailwind.
+Para editarla: entrar a lovable.dev y buscar el proyecto AGENCIAS.
+Pendiente: agregar botón que apunte a https://agencies-choreography-system.vercel.app/app/ para entrar a la app desde la página de presentación.
 
 ## Repositorio y deploy
 - Repo: github.com/racsodia626-wq/agencias-sistema
