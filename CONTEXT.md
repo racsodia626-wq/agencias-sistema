@@ -205,12 +205,36 @@ Pendiente: agregar ese botón en Lovable.
 - [x] Construir public/app/levels/nivel-01.html — conexión WebRTC funcional — video y audio bidireccional entre performer y controlador — probado en celular + laptop — hecho 2026-05-07
 - [x] Sistema de audio completo en camera.html: voz pregenerada (.m4a) + 8 sonidos diferenciados por comando — hecho 2026-05-09
 - [x] Archivos de audio en public/app/sounds/commands/ — control.js define qué audio corresponde a cada comando, camera.html solo reproduce lo que recibe — hecho 2026-05-09
+- [ ] Terminar tooltips en index.html — EN PROGRESO (ver estado abajo)
 - [ ] Agregar detección de manos (palmas y dorso) a camera.html — Validación A del flujo de activación
 - [ ] Agregar botón virtual — Validación B: mano del performer entra en zona que solo el controlador ve
 - [ ] Pantalla intermedia tutorial → Nivel 01 — contenido por definir
 - [ ] Obstáculos — pendiente hasta resolver ángulo de cámara
 - [ ] Definir símbolos universales para comandos
 - [ ] Sistema de audio multilingüe — mantener voz + sonido juntos; sonidos con lógica direccional (tono ascendente = avanzar, descendente = retroceder, paneado izq/der = girar); idioma configurable al inicio de sesión via Web Speech API
+
+## Estado de tooltips en index.html — 2026-05-20
+
+Tarea: hover en desktop muestra instrucciones del rol, tap en móvil primer toque muestra instrucciones, segundo toque navega.
+
+**Lo que ya funciona:**
+- HTML correcto: cada `.btn` está envuelto en `.btn-wrapper`, cada wrapper tiene su `.tooltip` con el contenido correcto
+- CSS llega al browser — confirmado: con `opacity: 1` el tooltip aparece
+- JS de móvil: lógica de touchstart con primer/segundo tap implementada
+
+**El problema diagnosticado:**
+El tooltip estaba posicionado con `top: calc(100% + 12px)` — aparece debajo del botón. Los botones están en la mitad-baja del layout centrado verticalmente, por lo que el tooltip caía fuera del viewport sin que el usuario pudiera verlo.
+
+**Estado actual del código (DIAGNÓSTICO — no es el estado final):**
+- `opacity: 1` — forzado para diagnóstico, debe volver a `opacity: 0` con transition
+- `top: 0` — temporal para diagnóstico, debe cambiarse a `bottom: calc(100% + 12px)` para que aparezca ARRIBA del botón donde hay espacio
+- `console.log` de diagnóstico presente en el script — debe eliminarse
+
+**Lo que hay que hacer al retomar:**
+1. Eliminar el `console.log` de diagnóstico del script
+2. Cambiar `top: 0` por `bottom: calc(100% + 12px)` — arriba del botón
+3. Restaurar `opacity: 0` y `transition: opacity 0.2s ease`
+4. Probar hover en desktop y tap en móvil en Vercel con hard refresh
 
 ## Decisiones tomadas — 2026-04-29
 - Cámara en primera persona con head mount — reemplaza celular como cámara del performer
